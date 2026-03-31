@@ -1,0 +1,26 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Thông tin người dùng, API Key cá nhân và trạng thái gói cước.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Email người dùng" },
+        "displayName": { "type": "string", "description": "Tên hiển thị" },
+        "photoURL": { "type": "string", "description": "Ảnh đại diện" },
+        "customApiKey": { "type": "string", "description": "API Key cá nhân được mã hóa hoặc lưu trữ an toàn." },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "pro"], "description": "Trạng thái gói cước" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Ngày tạo tài khoản" },
+        "lastLogin": { "type": "string", "format": "date-time", "description": "Ngày đăng nhập cuối" }
+      },
+      "required": ["uid", "email", "subscriptionStatus"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Dữ liệu cá nhân của từng người dùng."
+    }
+  }
+}

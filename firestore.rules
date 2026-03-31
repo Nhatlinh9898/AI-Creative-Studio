@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (Firebase Auth UID)
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required) - Email người dùng
+    //   - displayName: string (optional) - Tên hiển thị
+    //   - photoURL: string (optional) - Ảnh đại diện
+    //   - customApiKey: string (optional) - API Key cá nhân
+    //   - subscriptionStatus: string (required, 'free'|'pro') - Trạng thái gói cước
+    //   - createdAt: string (optional) - Ngày tạo tài khoản
+    //   - lastLogin: string (optional) - Ngày đăng nhập cuối
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionStatus == 'admin' ||
+          (request.auth.token.email == "Nhatlinhckm2016@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'subscriptionStatus']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.subscriptionStatus in ['free', 'pro'] &&
+             (!('displayName' in data) || data.displayName is string) &&
+             (!('photoURL' in data) || data.photoURL is string) &&
+             (!('customApiKey' in data) || (data.customApiKey is string && data.customApiKey.size() < 200));
+    }
+
+    match /users/{userId} {
+      // Chỉ cho phép người dùng đọc dữ liệu của chính mình hoặc admin
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Tạo mới: Phải là chính mình, mặc định là gói 'free' (trừ khi là admin)
+      allow create: if isOwner(userId) && 
+                      isValidUser(request.resource.data) && 
+                      (request.resource.data.subscriptionStatus == 'free' || isAdmin());
+      
+      // Cập nhật: Chủ sở hữu có thể cập nhật thông tin cá nhân nhưng KHÔNG được tự ý đổi gói cước
+      allow update: if isOwner(userId) && 
+                      isValidUser(request.resource.data) && 
+                      (request.resource.data.subscriptionStatus == resource.data.subscriptionStatus || isAdmin());
+      
+      // Xóa: Chỉ admin
+      allow delete: if isAdmin();
+    }
+  }
+}

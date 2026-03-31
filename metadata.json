@@ -1,0 +1,5 @@
+{
+  "name": "AI Creative Studio",
+  "description": "Ứng dụng tạo ảnh và video sử dụng Gemini AI. Hỗ trợ tích hợp API Key cá nhân cho các tính năng cao cấp.",
+  "requestFramePermissions": []
+}
