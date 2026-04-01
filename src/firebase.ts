@@ -6,10 +6,21 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, getDocFromSer
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase SDK
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-export const auth = getAuth();
-export const googleProvider = new GoogleAuthProvider();
+let app;
+let db: any;
+let auth: any;
+let googleProvider: any;
+
+try {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+} catch (err) {
+  console.error("Lỗi khởi tạo Firebase Client:", err);
+}
+
+export { db, auth, googleProvider };
 
 // Error handling for Firestore
 export enum OperationType {
@@ -65,6 +76,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 // Test connection
 async function testConnection() {
+  if (!db) return;
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {

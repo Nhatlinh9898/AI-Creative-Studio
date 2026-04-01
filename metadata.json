@@ -1,5 +1,5 @@
 {
-  "name": "AI Creative Studio",
-  "description": "Ứng dụng tạo ảnh và video sử dụng Gemini AI. Hỗ trợ tích hợp API Key cá nhân cho các tính năng cao cấp.",
+  "name": "AI Creative Studio Pro",
+  "description": "Nền tảng AI đa năng: Tạo ảnh/video (Gemini/Veo), Phân tích dữ liệu, Chuyển văn bản thành giọng nói/nhạc, và Lập trình 3D/Animation. Tích hợp Stripe & Hệ thống giới thiệu.",
   "requestFramePermissions": []
 }

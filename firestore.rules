@@ -40,28 +40,77 @@ service cloud.firestore {
       return data.keys().hasAll(['uid', 'email', 'subscriptionStatus']) &&
              data.uid is string &&
              data.email is string &&
-             data.subscriptionStatus in ['free', 'pro'] &&
+             data.subscriptionStatus in ['free', 'pro', 'business'] &&
              (!('displayName' in data) || data.displayName is string) &&
              (!('photoURL' in data) || data.photoURL is string) &&
-             (!('customApiKey' in data) || (data.customApiKey is string && data.customApiKey.size() < 200));
+             (!('customApiKey' in data) || (data.customApiKey is string && data.customApiKey.size() < 200)) &&
+             (!('credits' in data) || data.credits is int) &&
+             (!('totalSpent' in data) || data.totalSpent is number) &&
+             (!('referralCode' in data) || data.referralCode is string) &&
+             (!('referredBy' in data) || data.referredBy is string) &&
+             (!('commissionBalance' in data) || data.commissionBalance is number);
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['uid', 'amount', 'type', 'status', 'timestamp']) &&
+             data.uid is string &&
+             data.amount is number &&
+             data.type in ['subscription', 'topup', 'commission'] &&
+             data.status in ['pending', 'completed', 'failed'] &&
+             data.timestamp is string;
     }
 
     match /users/{userId} {
-      // Chỉ cho phép người dùng đọc dữ liệu của chính mình hoặc admin
       allow read: if isOwner(userId) || isAdmin();
-      
-      // Tạo mới: Phải là chính mình, mặc định là gói 'free' (trừ khi là admin)
       allow create: if isOwner(userId) && 
                       isValidUser(request.resource.data) && 
                       (request.resource.data.subscriptionStatus == 'free' || isAdmin());
-      
-      // Cập nhật: Chủ sở hữu có thể cập nhật thông tin cá nhân nhưng KHÔNG được tự ý đổi gói cước
       allow update: if isOwner(userId) && 
                       isValidUser(request.resource.data) && 
-                      (request.resource.data.subscriptionStatus == resource.data.subscriptionStatus || isAdmin());
-      
-      // Xóa: Chỉ admin
+                      (request.resource.data.subscriptionStatus == resource.data.subscriptionStatus || 
+                       request.resource.data.subscriptionStatus in ['pro', 'business'] || 
+                       isAdmin());
       allow delete: if isAdmin();
     }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+                      isValidTransaction(request.resource.data) && 
+                      (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (Firebase Auth UID)
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required) - Email người dùng
+    //   - displayName: string (optional) - Tên hiển thị
+    //   - photoURL: string (optional) - Ảnh đại diện
+    //   - customApiKey: string (optional) - API Key cá nhân
+    //   - subscriptionStatus: string (required, 'free'|'pro'|'business') - Trạng thái gói cước
+    //   - credits: int (optional) - Số dư credit
+    //   - totalSpent: number (optional) - Tổng chi tiêu
+    //   - referralCode: string (optional) - Mã giới thiệu
+    //   - referredBy: string (optional) - UID người giới thiệu
+    //   - commissionBalance: number (optional) - Số dư hoa hồng
+    //   - createdAt: string (optional) - Ngày tạo tài khoản
+    //   - lastLogin: string (optional) - Ngày đăng nhập cuối
+    //
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields:
+    //   - uid: string (required) - UID người thực hiện
+    //   - amount: number (required) - Số tiền
+    //   - type: string (required, 'subscription'|'topup'|'commission') - Loại giao dịch
+    //   - status: string (required, 'pending'|'completed'|'failed') - Trạng thái
+    //   - timestamp: string (required) - Thời gian
+    //
+    // ===============================================================
   }
 }

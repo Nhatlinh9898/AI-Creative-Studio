@@ -10,7 +10,12 @@
         "displayName": { "type": "string", "description": "Tên hiển thị" },
         "photoURL": { "type": "string", "description": "Ảnh đại diện" },
         "customApiKey": { "type": "string", "description": "API Key cá nhân được mã hóa hoặc lưu trữ an toàn." },
-        "subscriptionStatus": { "type": "string", "enum": ["free", "pro"], "description": "Trạng thái gói cước" },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "pro", "business"], "description": "Trạng thái gói cước" },
+        "credits": { "type": "integer", "description": "Số dư credit hiện tại" },
+        "totalSpent": { "type": "number", "description": "Tổng số tiền đã chi tiêu (VNĐ)" },
+        "referralCode": { "type": "string", "description": "Mã giới thiệu của người dùng" },
+        "referredBy": { "type": "string", "description": "UID của người giới thiệu" },
+        "commissionBalance": { "type": "number", "description": "Số dư hoa hồng có thể rút" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Ngày tạo tài khoản" },
         "lastLogin": { "type": "string", "format": "date-time", "description": "Ngày đăng nhập cuối" }
       },
@@ -21,6 +26,46 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "Dữ liệu cá nhân của từng người dùng."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Lịch sử giao dịch nạp tiền và mua gói."
+    }
+  },
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Thông tin người dùng, API Key cá nhân và trạng thái gói cước.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Email người dùng" },
+        "displayName": { "type": "string", "description": "Tên hiển thị" },
+        "photoURL": { "type": "string", "description": "Ảnh đại diện" },
+        "customApiKey": { "type": "string", "description": "API Key cá nhân được mã hóa hoặc lưu trữ an toàn." },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "pro", "business"], "description": "Trạng thái gói cước" },
+        "credits": { "type": "integer", "description": "Số dư credit hiện tại" },
+        "totalSpent": { "type": "number", "description": "Tổng số tiền đã chi tiêu (VNĐ)" },
+        "referralCode": { "type": "string", "description": "Mã giới thiệu của người dùng" },
+        "referredBy": { "type": "string", "description": "UID của người giới thiệu" },
+        "commissionBalance": { "type": "number", "description": "Số dư hoa hồng có thể rút" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Ngày tạo tài khoản" },
+        "lastLogin": { "type": "string", "format": "date-time", "description": "Ngày đăng nhập cuối" }
+      },
+      "required": ["uid", "email", "subscriptionStatus"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Ghi lại các giao dịch tài chính.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "UID của người thực hiện" },
+        "amount": { "type": "number", "description": "Số tiền giao dịch" },
+        "type": { "type": "string", "enum": ["subscription", "topup", "commission"], "description": "Loại giao dịch" },
+        "status": { "type": "string", "enum": ["pending", "completed", "failed"], "description": "Trạng thái" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Thời gian giao dịch" }
+      },
+      "required": ["uid", "amount", "type", "status", "timestamp"]
     }
   }
 }
